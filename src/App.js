@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { API, Storage } from 'aws-amplify';
+import { API, Storage, Auth } from 'aws-amplify';
 import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
 import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
@@ -37,6 +37,9 @@ function App() {
   }
   async function createNote() {
     if (!formData.name || !formData.description) return;
+    var user = Auth.currentUserInfo();
+    formData.author = user.username;
+
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
     if (formData.image) {
       const image = await Storage.get(formData.image);
@@ -76,6 +79,7 @@ function App() {
             <div key={note.id || note.name}>
               <h2>{note.name}</h2>
               <p>{note.description}</p>
+              <p><i>{note.author}</i></p>
               <button onClick={() => deleteNote(note)}>Delete note</button>
               {
                 note.image && <img src={note.image} style={{width: 400}} alt="" />
