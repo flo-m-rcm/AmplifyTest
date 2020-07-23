@@ -37,8 +37,10 @@ function App() {
   }
   async function createNote() {
     if (!formData.name || !formData.description) return;
-    var user = Auth.currentUserInfo();
-    formData.author = user.username;
+    const tokens = await Auth.currentSession();
+    const user = tokens.getIdToken().payload['cognito:username'];
+    formData.author = user;
+    console.log("user: "+ user);
 
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
     if (formData.image) {
